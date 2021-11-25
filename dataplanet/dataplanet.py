@@ -58,9 +58,10 @@ class dataplanet:
             if metric == 'accuracy':
                 mlflow.log_metric(metric, accuracy_score(self.labels, self.predictions))
 
-    def log_params(self):
+    def log_params(self, *param_values):
+        values = iter(param_values)
         for param in self.param_list:
-            mlflow.log_param(param, <parameter_val>)
+            mlflow.log_param(param, next(values))
 
     def start_run(self):
         mlflow.start_run()
@@ -76,3 +77,15 @@ class dataplanet:
         self.predictions = predictions
         self.labels = labels
         log_metrics()
+
+    def set_param_count(self):
+        self.param_count = len(self.param_list)
+
+    def get_param_count(self):
+        return self.param_count
+
+    def set_model_library(self, model):
+        self.model_library = str(type(model)).split('.')[0].split('\'')
+
+    def get_model_library(self):
+        return self.model_library
