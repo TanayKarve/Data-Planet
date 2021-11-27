@@ -1,4 +1,6 @@
-from mlflow import mlflow, signature
-from mlflow.models.signature import infer_signature
+from mlflow import mlflow
+from mlflow.models import signature
 import mlflow.sklearn
 import sklearn
+from sklearn import metrics
+from collections import defaultdict
