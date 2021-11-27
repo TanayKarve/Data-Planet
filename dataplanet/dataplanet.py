@@ -1,10 +1,11 @@
 class dataplanet:
 
-    def __init__(self, experiment_name, param_list, metric_list):
+    def __init__(self, experiment_name, param_list, metric_list, model):
         self.dataverse_url = "http://dataverse-dev.localhost:8085"
         self.experiment_name = experiment_name
         self.param_list = param_list
         self.metric_list = metric_list
+        self.model = model
 
     def set_tracking_uri(self, tracking_uri):
         self.tracking_uri = tracking_uri
@@ -67,7 +68,7 @@ class dataplanet:
         mlflow.start_run()
 
     def get_model_signature(self, features, predictions):
-        self.model_signature = infer_signature(features, predictions)
+        self.model_signature = signature.infer_signature(features, predictions)
         return self.model_signature
 
     def set_model_signature(self, model_signature):
@@ -84,8 +85,95 @@ class dataplanet:
     def get_param_count(self):
         return self.param_count
 
-    def set_model_library(self, model):
-        self.model_library = str(type(model)).split('.')[0].split('\'')
+    def set_model_library(self):
+        self.model_library = str(type(self.model)).split('.')[0].split('\'')
 
     def get_model_library(self):
         return self.model_library
+
+    def compute_metrics(self, labels, predictions):
+        if self.library == 'sklearn':
+            compute_sklearn_metrics()
+
+    def compute_sklearn_metrics(self):
+        sklearn_metrics = {'accuracy':'accuracy_score',
+            'adjusted mis':'adjusted_mutual_info_score',
+            'adjusted rand':'adjusted_rand_score',
+            'auc':'auc',
+            'average precision':'average_precision_score',
+            'balanced accuracy':'balanced_accuracy_score',
+            'brier score loss': 'brier_score_loss',
+            'calinski harabasz':'calinski_harabasz_score',
+            'check scoring':'check_scoring',
+            'classification report':'classification_report',
+            'cluster':'cluster',
+            'cohen kappa':'cohen_kappa_score',
+            'completeness':'completeness_score',
+            'confusion matrix':'confusion_matrix',
+            'consensus':'consensus_score',
+            'coverage error':'coverage_error',
+            'd2 tweedie':'d2_tweedie_score',
+            'davies bouldin':'davies_bouldin_score',
+            'dcg':'dcg_score',
+            'det':'det_curve',
+            'euclidean distances':'euclidean_distances',
+            'explained variance':'explained_variance_score',
+            'f1':'f1_score',
+            'fbeta':'fbeta_score',
+            'fowlkes mallows':'fowlkes_mallows_score',
+            'get scorer':'get_scorer',
+            'hamming loss':'hamming_loss',
+            'hinge loss':'hinge_loss',
+            'homogeneity completeness v measure':'homogeneity_completeness_v_measure',
+            'homogeneity':'homogeneity_score',
+            'jaccard':'jaccard_score',
+            'label ranking average precision':'label_ranking_average_precision_score',
+            'label ranking loss':'label_ranking_loss',
+            'log loss':'log_loss',
+            'make scorer':'make_scorer',
+            'matthews corrcoef':'matthews_corrcoef',
+            'max error':'max_error',
+            'mae':'mean_absolute_error',
+            'percent mae':'mean_absolute_percentage_error',
+            'mgd':'mean_gamma_deviance',
+            'mpl':'mean_pinball_loss',
+            'mpd':'mean_poisson_deviance',
+            'mse':'mean_squared_error',
+            'log mse':'mean_squared_log_error',
+            'mtd':'mean_tweedie_deviance',
+            'median absolute error':'median_absolute_error',
+            'multilabel confusion matrix':'multilabel_confusion_matrix',
+            'mis':'mutual_info_score',
+            'nan euclidean distances':'nan_euclidean_distances',
+            'ndcg':'ndcg_score',
+            'normalized mis':'normalized_mutual_info_score',
+            'pair confusion matrix':'pair_confusion_matrix',
+            'pairwise':'pairwise',
+            'pairwise distances':'pairwise_distances',
+            'pairwise distances argmin':'pairwise_distances_argmin',
+            'pairwise distances argmin min':'pairwise_distances_argmin_min',
+            'pairwise distances chunked':'pairwise_distances_chunked',
+            'pairwise_kernels':'pairwise_kernels',
+            'plot confusion matrix':'plot_confusion_matrix',
+            'plot det':'plot_det_curve',
+            'plot precision recall':'plot_precision_recall_curve',
+            'plot roc': 'plot_roc_curve',
+            'precision recall':'precision_recall_curve',
+            'precision recall fscore support':'precision_recall_fscore_support',
+            'precision':'precision_score',
+            'r2':'r2_score',
+            'rand':'rand_score',
+            'recall':'recall_score',
+            'roc accuracy':'roc_auc_score',
+            'roc':'roc_curve',
+            'silhouette samples':'silhouette_samples',
+            'silhouette':'silhouette_score',
+            'top k accuracy':'top_k_accuracy_score',
+            'v meansure':'v_measure_score',
+            'zero one loss':'zero_one_loss'}
+
+        for metric in self.metric_list:
+            if metric in sklearn_metrics:
+                mlflow.log_metric(metric, getattr(sklearn.metrics, sklearn_metrics))
+            else:
+                raise ValueError('Metric Not Found')
