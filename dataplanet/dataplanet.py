@@ -6,6 +6,7 @@ class dataplanet:
         self.param_list = param_list
         self.metric_list = metric_list
         self.model = model
+        self.library = model.__class__.__bases__[0].__module__.split('.')[0]
 
     def set_tracking_uri(self, tracking_uri):
         self.tracking_uri = tracking_uri
@@ -53,10 +54,9 @@ class dataplanet:
                     pass
         return models
 
-    def log_params(self, *param_values):
-        values = iter(param_values)
+    def log_params(self, **param_values):
         for param in self.param_list:
-            mlflow.log_param(param, next(values))
+            mlflow.log_param(param, param_values[param]))
 
     def start_run(self):
         mlflow.start_run()
@@ -79,11 +79,11 @@ class dataplanet:
     def get_param_count(self):
         return self.param_count
 
-    def set_model_library(self):
-        self.model_library = str(type(self.model)).split('.')[0].split('\'')
-
-    def get_model_library(self):
-        return self.model_library
+    # def set_model_library(self):
+    #     self.model_library = str(type(self.model)).split('.')[0].split('\'')
+    #
+    # def get_model_library(self):
+    #     return self.model_library
 
     def log_metrics(self):
         if self.library == 'sklearn':
