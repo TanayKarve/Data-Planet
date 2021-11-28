@@ -26,7 +26,6 @@ class dataplanet:
 
     def set_metric_list(self, *metric_list):
         self.metric_list = metric_list
-        log_metrics(metric_list)
 
     def get_metric_list(self):
         return self.metric_list
@@ -53,11 +52,6 @@ class dataplanet:
                 except KeyError:
                     pass
         return models
-
-    def log_metrics(self):
-        for metric in self.metric_list:
-            if metric == 'accuracy':
-                mlflow.log_metric(metric, accuracy_score(self.labels, self.predictions))
 
     def log_params(self, *param_values):
         values = iter(param_values)
@@ -91,11 +85,11 @@ class dataplanet:
     def get_model_library(self):
         return self.model_library
 
-    def compute_metrics(self, labels, predictions):
+    def log_metrics(self):
         if self.library == 'sklearn':
-            compute_sklearn_metrics()
+            log_sklearn_metrics()
 
-    def compute_sklearn_metrics(self):
+    def log_sklearn_metrics(self):
         sklearn_metrics = {'accuracy':'accuracy_score',
             'adjusted mis':'adjusted_mutual_info_score',
             'adjusted rand':'adjusted_rand_score',
@@ -174,6 +168,7 @@ class dataplanet:
 
         for metric in self.metric_list:
             if metric in sklearn_metrics:
-                mlflow.log_metric(metric, getattr(sklearn.metrics, sklearn_metrics))
+                metric_val = getattr(sklearn.metrics, sklearn_metrics[metric])(self.labels, self.predictions)
+                mlflow.log_metric(metric, metric_val)
             else:
                 raise ValueError('Metric Not Found')
