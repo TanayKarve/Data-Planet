@@ -154,14 +154,13 @@ max_depth_grid = [25,50,75]
 #avgsc,avgsc_train,avgsc_hld = 0,0,0
 
 best_param_count = {'n_estimator': {}, 'max_depth': {}}
-dataplanet.set_param_list('max_depth','n_estimator')
-
 i=0
 
-dataPlanet = dataplanet()
-
 EXP_NAME='rf_iris'
-dataPlanet.set_experiment_name(EXP_NAME)
+dataplanet.set_experiment_name(EXP_NAME)
+
+dataplanet.set_param_list('max_depth', 'n_estimator')
+dataplanet.set_metric_list('accuracy')
 
 for train_index, test_index in kf.split(X_train_new):
 #     if i==1: break
@@ -173,23 +172,22 @@ for train_index, test_index in kf.split(X_train_new):
     print('='*10)
     for ne in n_estimators_grid:
         for md in max_depth_grid:
-          with dataPlanet.start_run():
+          with dataplanet.start_run():
               #Log parameters
-              dataPlanet.log_params('max_depth', 'n_estimator')
+              dataplanet.log_params({'max_depth':md, 'n_estimator':ne})
 
               clf = RandomForestClassifier(n_estimators=ne,max_depth=md)
               clf.fit(X_train_train, y_train_train.ravel())
               sc = clf.score(X_val, y_val)
-              dataPlanet.log_metrics('accuracy')
               #print(f"[n_estimator: {ne}, max_depth: {md}, accuracy: {sc}]")
-              signature = dataPlanet.get_model_signature(X_train, clf.predict(X_train))
-              dataPlanet.log(y_val, clf.predict(X_train))
+              signature = dataplanet.get_model_signature(X_train, clf.predict(X_train))
+              dataplanet.log(y_val, clf.predict(X_train))
               mlflow.sklearn.log_model(clf, "clf",signature=signature)
 
-models = dataPlanet.get_models()
+models = dataplanet.get_models()
 
-max_acc_URI=max(models,key=lambda x: x[1])
-URI=max_acc_URI[0]+'/clf'
+max_acc_URI = max(models,key=lambda x: x[1])
+URI = max_acc_URI[0]+'/clf'
 loaded_model = pickle.load(open(URI+'/model.pkl','rb'))
 y_pred = loaded_model.predict(X_val)
 # dataPlanet.log(y_val, y_pred)
