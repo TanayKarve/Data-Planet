@@ -189,8 +189,8 @@ for train_index, test_index in kf.split(X_train_new):
 
         clf.fit(X_train_train, y_train_train)
         sc = clf.score(X_val, y_val)
-        # dp.log_metrics()
-        print(f"[C: {val}, accuracy: {sc}]")
+        dp.log(y_val, clf.predict(X_val))
+        # print(f"[C: {val}, accuracy: {sc}]")
 
         dp.log_model(clf)
         # if bestscore < sc:

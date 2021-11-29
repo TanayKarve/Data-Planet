@@ -184,15 +184,15 @@ for train_index, test_index in kf.split(X_train_new):
               dp.set_model(clf)
               clf.fit(X_train_train, y_train_train.ravel())
               sc = clf.score(X_val, y_val)
-              #print(f"[n_estimator: {ne}, max_depth: {md}, accuracy: {sc}]")
+              # print(f"[n_estimator: {ne}, max_depth: {md}, accuracy: {sc}]")
               signature = dp.get_model_signature(X_train, clf.predict(X_train))
-              dp.log(y_val, clf.predict(X_train))
-              mlflow.sklearn.log_model(clf, "clf",signature=signature)
+              dp.log(y_val, clf.predict(X_val))
+              dp.log_model(clf)
 
 models = dp.get_models()
 
-max_acc_URI=max(models,key=lambda x: x[1])
-URI=max_acc_URI[0]+'/clf'
+max_acc_URI = max(models,key=lambda x: x[1])
+URI = max_acc_URI[0]+'/clf'
 loaded_model = pickle.load(open(URI+'/model.pkl','rb'))
 y_pred = loaded_model.predict(X_val)
 # dataplanet.log(y_val, y_pred)
