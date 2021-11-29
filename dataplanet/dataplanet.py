@@ -1,3 +1,11 @@
+import mlflow
+from mlflow.models import signature
+from mlflow.entities import experiment
+from collections import defaultdict
+import importlib
+import sklearn
+import sklearn.metrics
+
 class dataplanet:
 
     def __init__(self, experiment_name, param_list, metric_list):
@@ -55,9 +63,14 @@ class dataplanet:
                     pass
         return models
 
-    def log_params(self, **param_values):
+    # def log_params(self, **param_values):
+    #     for param in self.param_list:
+    #         mlflow.log_param(param, param_values[param])
+
+    def log_params(self, *param_values):
+        values = iter(param_values)
         for param in self.param_list:
-            mlflow.log_param(param, param_values[param])
+            mlflow.log_param(param, next(values))
 
     def start_run(self):
         return mlflow.start_run()
@@ -72,7 +85,7 @@ class dataplanet:
     def log(self, labels, predictions):
         self.predictions = predictions
         self.labels = labels
-        log_metrics()
+        self.log_metrics()
 
     def set_param_count(self):
         self.param_count = len(self.param_list)
@@ -88,8 +101,8 @@ class dataplanet:
         return self.model_library
 
     def log_metrics(self):
-        if self.library == 'sklearn':
-            log_sklearn_metrics()
+        if self.model_library == 'sklearn':
+            self.log_sklearn_metrics()
 
     def log_sklearn_metrics(self):
         sklearn_metrics = {'accuracy':'accuracy_score',
