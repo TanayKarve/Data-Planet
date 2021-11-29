@@ -1,12 +1,10 @@
 class dataplanet:
 
-    def __init__(self, experiment_name, param_list, metric_list, model):
+    def __init__(self, experiment_name, param_list, metric_list):
         self.dataverse_url = "http://dataverse-dev.localhost:8085"
         self.experiment_name = experiment_name
         self.param_list = param_list
         self.metric_list = metric_list
-        self.model = model
-        self.library = model.__class__.__bases__[0].__module__.split('.')[0]
 
     def set_tracking_uri(self, tracking_uri):
         self.tracking_uri = tracking_uri
@@ -20,7 +18,6 @@ class dataplanet:
 
     def set_param_list(self, *param_list):
         self.param_list = param_list
-        log_params(param_list)
 
     def get_param_list(self):
         return self.param_list
@@ -37,6 +34,10 @@ class dataplanet:
 
     def get_experiment_name(self):
         return self.experiment_name
+
+    def set_model(self,model):
+        self.model = model
+        self.set_model_library()
 
     def get_model(self):
         return self.model
@@ -56,10 +57,10 @@ class dataplanet:
 
     def log_params(self, **param_values):
         for param in self.param_list:
-            mlflow.log_param(param, param_values[param]))
+            mlflow.log_param(param, param_values[param])
 
     def start_run(self):
-        mlflow.start_run()
+        return mlflow.start_run()
 
     def get_model_signature(self, features, predictions):
         self.model_signature = signature.infer_signature(features, predictions)
@@ -79,11 +80,12 @@ class dataplanet:
     def get_param_count(self):
         return self.param_count
 
-    # def set_model_library(self):
-    #     self.model_library = str(type(self.model)).split('.')[0].split('\'')
-    #
-    # def get_model_library(self):
-    #     return self.model_library
+    def set_model_library(self):
+        # self.model_library = str(type(self.model)).split('.')[0].split('\'')
+        self.model_library = self.model.__class__.__bases__[0].__module__.split('.')[0]
+
+    def get_model_library(self):
+        return self.model_library
 
     def log_metrics(self):
         if self.library == 'sklearn':
