@@ -104,6 +104,11 @@ class dataplanet:
         if self.model_library == 'sklearn':
             self.log_sklearn_metrics()
 
+    def log_model(self,model):
+        model_library = self.get_model_library()
+        if model_library == 'sklearn':
+            mlflow.sklearn.log_model(model,'model')
+            
     def log_sklearn_metrics(self):
         sklearn_metrics = {'accuracy':'accuracy_score',
             'adjusted mis':'adjusted_mutual_info_score',
