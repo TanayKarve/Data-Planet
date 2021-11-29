@@ -141,7 +141,7 @@ X_train_new
 
 
 k = 2
-kf = KFold(n_splits=k,random_state = 100)
+kf = KFold(n_splits=k,random_state = 100, shuffle=True)
 avg_train_acc,avg_test_acc = 0,0
 
 # n_estimators_grid = [5,25,50,75,100,500]
