@@ -178,14 +178,14 @@ for train_index, test_index in kf.split(X_train_new):
         for md in max_depth_grid:
           with dp.start_run():
               #Log parameters
-              dp.log_params('max_depth', 'n_estimator')
+              dp.log_params(md, ne)
 
               clf = RandomForestClassifier(n_estimators=ne,max_depth=md)
+              dp.set_model(clf)
               clf.fit(X_train_train, y_train_train.ravel())
               sc = clf.score(X_val, y_val)
-              dp.log_metrics('accuracy')
               #print(f"[n_estimator: {ne}, max_depth: {md}, accuracy: {sc}]")
-              signature = dataplanet.get_model_signature(X_train, clf.predict(X_train))
+              signature = dp.get_model_signature(X_train, clf.predict(X_train))
               dp.log(y_val, clf.predict(X_train))
               mlflow.sklearn.log_model(clf, "clf",signature=signature)
 
