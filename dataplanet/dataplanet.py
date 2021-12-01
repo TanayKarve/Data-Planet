@@ -79,7 +79,7 @@ class dataplanet:
         model_name = self.model.__class__.__name__
 
         if lib in {'keras','tensorflow'}:
-            params = self.get_config()
+            params = self.model.get_config()
         elif lib == 'pytorch':
             params = dict(self.model.named_children())
         elif lib == 'sklearn':
