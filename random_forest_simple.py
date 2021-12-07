@@ -1,5 +1,4 @@
 import pandas as pd
-# import sortinghat.pylib as sh
 from dataplanet.dataplanet import dataplanet
 from sklearn.model_selection import  train_test_split
 from sklearn.ensemble import RandomForestClassifier
