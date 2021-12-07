@@ -61,7 +61,6 @@ class dataplanet:
 
     def get_models(self):
         models=[]
-        # for ri in self.mlflow.list_run_infos(self.mlflow.get_experiment_by_name(self.experiment_name)):
         for ri in self.mlflow.list_run_infos('0'):
             run = self.mlflow.get_run(ri.run_id)
             for metric in self.metric_list:
@@ -124,10 +123,6 @@ class dataplanet:
         payload ={'URI':URI,'model':model_meta,'mlflow_url':self.mlflow_url}
         json.dump(payload,open('model_metadata.json','w'))
 
-    # def log_params(self, **param_values):
-    #     for param in self.param_list:
-    #         mlflow.log_param(param, param_values[param])
-
     def log_params(self, *param_values):
         values = iter(param_values)
         for param in self.param_list:
@@ -156,7 +151,6 @@ class dataplanet:
         return self.param_count
 
     def set_model_library(self):
-        # self.model_library = str(type(self.model)).split('.')[0].split('\'')
         self.model_library = self.model.__class__.__bases__[0].__module__.split('.')[0]
 
     def get_model_library(self):
