@@ -16,12 +16,10 @@ from sklearn import metrics
 import pickle
 import math
 import re
-#import enchant
 import pandas as pd
 import os
 import glob
 import numpy as np
-# np.random.seed(512)
 
 from sklearn.linear_model import LogisticRegression, LogisticRegressionCV
 from sklearn.model_selection import train_test_split
@@ -33,7 +31,7 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn import linear_model
 
-import numpy as np # linear algebra
+import numpy as np 
 import pandas as pd
 import pickle
 import joblib
@@ -114,7 +112,6 @@ def FeatureExtraction(data,data1,flag):
     arr = data['Attribute_name'].values
     arr = [str(x) for x in arr]
     print(len(arr))
-    # data = data.fillna(0)
     arr1 = data['sample_1'].values
     arr1 = [str(x) for x in arr1]
     arr2 = data['sample_2'].values
@@ -136,11 +133,7 @@ def FeatureExtraction(data,data1,flag):
 
     print(len(data1),len(attr_df),len(sample1_df),len(sample2_df))
     data2 = pd.concat([data1, attr_df,sample1_df,sample2_df], axis=1, sort=False)
-#     data2 = pd.concat([attr_df, sample1_df], axis=1, sort=False)
-#     data2 = pd.concat([sample1_df, sample2_df, sample3_df, sample4_df], axis=1, sort=False)
-#     print(len(data2))
     return data2
-#     return sample1_df
 
 xtrain1 = ProcessStats(xtrain,y_train)
 xtest1 = ProcessStats(xtest,y_test)
@@ -160,8 +153,6 @@ avg_train_acc, avg_test_acc = 0, 0
 
 val_arr = [0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000, 10000, 100000]
 
-#avgsc_lst, avgsc_train_lst, avgsc_hld_lst = [], [], []
-#avgsc, avgsc_train, avgsc_hld = 0, 0, 0
 
 EXP_NAME='logReg'
 param_list = ['val_arr']
@@ -190,13 +181,7 @@ for train_index, test_index in kf.split(X_train_new):
         clf.fit(X_train_train, y_train_train)
         sc = clf.score(X_val, y_val)
         dp.log(y_val, clf.predict(X_val))
-        # print(f"[C: {val}, accuracy: {sc}]")
-
         dp.log_model(clf)
-        # if bestscore < sc:
-        #     bestcval = val
-        #     bestscore = sc
-        #     bestPerformingModel = clf
 
 models = dp.get_models()
 
@@ -205,27 +190,3 @@ URI=max_acc_URI[0]+'/clf'
 loaded_model = mlflow.pyfunc.load_model(URI)
 
 y_pred = loaded_model.predict(X_val)
-# print(accuracy_score(y_val,y_pred))
-
-#     if str(bestcval) in best_param_count['cval']:
-#         best_param_count['cval'][str(bestcval)] += 1
-#     else:
-#         best_param_count['cval'][str(bestcval)] = 1
-
-#     bscr_train = bestPerformingModel.score(X_train_cur, y_train_cur)
-#     bscr = bestPerformingModel.score(X_test_cur, y_test_cur)
-#     bscr_hld = bestPerformingModel.score(X_test, y_test)
-
-#     avgsc_train_lst.append(bscr_train)
-#     avgsc_lst.append(bscr)
-#     avgsc_hld_lst.append(bscr_hld)
-
-#     avgsc_train = avgsc_train + bscr_train
-#     avgsc = avgsc + bscr
-#     avgsc_hld = avgsc_hld + bscr_hld
-#     print()
-#     print(f"> Best C: {bestcval}")
-#     print(f"> Best training score: {bscr_train}")
-#     print(f"> Best test score: {bscr}")
-#     print(f"> Best held score: {bscr_hld}")
-# print('='*10)
