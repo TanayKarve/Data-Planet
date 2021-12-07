@@ -20,7 +20,6 @@ from sklearn import metrics
 import pickle
 import math
 import re
-#import enchant
 import os
 import glob
 import numpy as np
@@ -107,7 +106,6 @@ def FeatureExtraction(data,data1,flag):
         X1 = vectorizerSample.transform(arr1)
         X2 = vectorizerSample.transform(arr2)
 
-#     print(f"> Length of vectorized feature_names: {len(vectorizer.get_feature_names())}")
 
     attr_df = pd.DataFrame(X.toarray())
     sample1_df = pd.DataFrame(X1.toarray())
@@ -145,18 +143,13 @@ k = 2
 kf = KFold(n_splits=k,random_state = 100, shuffle=True)
 avg_train_acc,avg_test_acc = 0,0
 
-# n_estimators_grid = [5,25,50,75,100,500]
-# max_depth_grid = [5,10,25,50,100,250]
 
 n_estimators_grid = [25,50,75]
 max_depth_grid = [25,50,75]
 
-#avgsc_lst,avgsc_train_lst,avgsc_hld_lst = [],[],[]
-#avgsc,avgsc_train,avgsc_hld = 0,0,0
 
 best_param_count = {'n_estimator': {}, 'max_depth': {}}
 
-# dataplanet.set_param_list('max_depth','n_estimator')
 
 i=0
 
@@ -189,7 +182,6 @@ for train_index, test_index in kf.split(X_train_new):
               clf.fit(X_train_train, y_train_train.ravel())
               sc = clf.score(X_val, y_val)
 
-              # print(f"[n_estimator: {ne}, max_depth: {md}, accuracy: {sc}]")
               signature = dp.get_model_signature(X_train, clf.predict(X_train))
               dp.log(y_val, clf.predict(X_val))
               dp.log_model(clf)
