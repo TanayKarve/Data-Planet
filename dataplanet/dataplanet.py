@@ -22,6 +22,7 @@ class dataplanet:
         self.mlflow_url = f"http://localhost:{UI_PORT}"
         subprocess.Popen(['mlflow',"ui", "--port", str(UI_PORT)])
 
+
     def set_tracking_uri(self, tracking_uri):
         self.tracking_uri = tracking_uri
         self.mlflow.set_tracking_uri(self.tracking_uri)
@@ -74,7 +75,7 @@ class dataplanet:
             models = [(artifact_uri,1)]
             
         return models
-    
+
     def get_model_summary(self,lib):
         model_name = self.model.__class__.__name__
 
@@ -146,6 +147,7 @@ class dataplanet:
         self.predictions = predictions
         self.labels = labels
         self.log_metrics()
+
 
     def set_param_count(self):
         self.param_count = len(self.param_list)
