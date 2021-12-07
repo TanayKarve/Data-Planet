@@ -10,7 +10,8 @@ from sklearn.metrics import confusion_matrix, accuracy_score
 from sklearn.tree import DecisionTreeClassifier, export_graphviz
 from sklearn.neural_network import MLPClassifier
 from sklearn.ensemble import RandomForestClassifier
-import dataplanet
+from dataplanet import dataplanet
+import mlflow
 
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
@@ -141,7 +142,7 @@ X_train_new
 
 
 k = 2
-kf = KFold(n_splits=k,random_state = 100)
+kf = KFold(n_splits=k,random_state = 100, shuffle=True)
 avg_train_acc,avg_test_acc = 0,0
 
 # n_estimators_grid = [5,25,50,75,100,500]
@@ -154,13 +155,18 @@ max_depth_grid = [25,50,75]
 #avgsc,avgsc_train,avgsc_hld = 0,0,0
 
 best_param_count = {'n_estimator': {}, 'max_depth': {}}
+
+# dataplanet.set_param_list('max_depth','n_estimator')
+
 i=0
 
 EXP_NAME='rf_iris'
-dataplanet.set_experiment_name(EXP_NAME)
+param_list = ['max_depth','n_estimator']
+metric_list = ['accuracy']
+dp = dataplanet.dataplanet(EXP_NAME, param_list, metric_list)
 
-dataplanet.set_param_list('max_depth', 'n_estimator')
-dataplanet.set_metric_list('accuracy')
+print(dp.experiment_name)
+
 
 for train_index, test_index in kf.split(X_train_new):
 #     if i==1: break
@@ -172,74 +178,28 @@ for train_index, test_index in kf.split(X_train_new):
     print('='*10)
     for ne in n_estimators_grid:
         for md in max_depth_grid:
-          with dataplanet.start_run():
+
+          with dp.start_run():
               #Log parameters
-              dataplanet.log_params({'max_depth':md, 'n_estimator':ne})
+              dp.log_params(md, ne)
+
 
               clf = RandomForestClassifier(n_estimators=ne,max_depth=md)
+              dp.set_model(clf)
               clf.fit(X_train_train, y_train_train.ravel())
               sc = clf.score(X_val, y_val)
-              #print(f"[n_estimator: {ne}, max_depth: {md}, accuracy: {sc}]")
-              signature = dataplanet.get_model_signature(X_train, clf.predict(X_train))
-              dataplanet.log(y_val, clf.predict(X_train))
-              mlflow.sklearn.log_model(clf, "clf",signature=signature)
 
-models = dataplanet.get_models()
+              # print(f"[n_estimator: {ne}, max_depth: {md}, accuracy: {sc}]")
+              signature = dp.get_model_signature(X_train, clf.predict(X_train))
+              dp.log(y_val, clf.predict(X_val))
+              dp.log_model(clf)
+
+models = dp.get_models()
+
 
 max_acc_URI = max(models,key=lambda x: x[1])
 URI = max_acc_URI[0]+'/clf'
 loaded_model = pickle.load(open(URI+'/model.pkl','rb'))
 y_pred = loaded_model.predict(X_val)
-# dataPlanet.log(y_val, y_pred)
-#print(accuracy_score(y_val,y_pred))
 
-#reduced LoC by ~40%
-_="""
-            if bestscore < sc:
-                bestne = ne
-                bestmd = md
-                bestscore = sc
-                bestPerformingModel = clf
-
-    if str(bestne) in best_param_count['n_estimator']:
-        best_param_count['n_estimator'][str(bestne)] += 1
-    else:
-        best_param_count['n_estimator'][str(bestne)] = 1
-
-    if str(bestmd) in best_param_count['max_depth']:
-        best_param_count['max_depth'][str(bestmd)] += 1
-    else:
-        best_param_count['max_depth'][str(bestmd)] = 1
-
-    bscr_train = bestPerformingModel.score(X_train_cur, y_train_cur)
-    bscr = bestPerformingModel.score(X_test_cur, y_test_cur)
-    bscr_hld = bestPerformingModel.score(X_test, y_test)
-
-    avgsc_train_lst.append(bscr_train)
-    avgsc_lst.append(bscr)
-    avgsc_hld_lst.append(bscr_hld)
-
-    avgsc_train = avgsc_train + bscr_train
-    avgsc = avgsc + bscr
-    avgsc_hld = avgsc_hld + bscr_hld
-
-    print()
-    print(f"> Best n_estimator: {bestne} || Best max_depth: {bestmd}")
-    print(f"> Best training score: {bscr_train}")
-    print(f"> Best test score: {bscr}")
-    print(f"> Best held score: {bscr_hld}")
-print('='*10)
-
-print(avgsc_train_lst)
-print(avgsc_lst)
-print(avgsc_hld_lst)
-
-print(avgsc_train/k)
-print(avgsc/k)
-print(avgsc_hld/k)
-
-y_pred = bestPerformingModel.predict(X_test)
-bscr_hld = bestPerformingModel.score(X_test, y_test)
-print(bscr_hld)
-"""
 X_train_ = X_train

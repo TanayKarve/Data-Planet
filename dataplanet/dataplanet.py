@@ -1,16 +1,31 @@
+import mlflow
+from mlflow.models import signature
+from mlflow.entities import experiment
+from collections import defaultdict
+import importlib
+import sklearn
+import sklearn.metrics
+from urllib.parse import unquote, urlparse
+import os
+import json
+import pickle
+import subprocess
+
 class dataplanet:
 
-    def __init__(self, experiment_name, param_list, metric_list, model):
+    def __init__(self, experiment_name, param_list, metric_list,UI_PORT=8000):
         self.dataverse_url = "http://dataverse-dev.localhost:8085"
         self.experiment_name = experiment_name
         self.param_list = param_list
         self.metric_list = metric_list
-        self.model = model
-        self.library = model.__class__.__bases__[0].__module__.split('.')[0]
+        self.mlflow = mlflow
+        self.mlflow_url = f"http://localhost:{UI_PORT}"
+        subprocess.Popen(['mlflow',"ui", "--port", str(UI_PORT)])
+
 
     def set_tracking_uri(self, tracking_uri):
         self.tracking_uri = tracking_uri
-        mlflow.set_tracking_uri(self.tracking_uri)
+        self.mlflow.set_tracking_uri(self.tracking_uri)
 
     def set_dataverse_url(self, dataverse_url):
         self.dataverse_url = dataverse_url
@@ -20,7 +35,6 @@ class dataplanet:
 
     def set_param_list(self, *param_list):
         self.param_list = param_list
-        log_params(param_list)
 
     def get_param_list(self):
         return self.param_list
@@ -33,33 +47,94 @@ class dataplanet:
 
     def set_experiment_name(self, experiment_name):
         self.experiment_name = experiment_name
-        mlflow.set_experiment(self.experiment_name)
+        self.mlflow.set_experiment(self.experiment_name)
 
     def get_experiment_name(self):
         return self.experiment_name
+
+    def set_model(self,model):
+        self.model = model
+        self.set_model_library()
 
     def get_model(self):
         return self.model
 
     def get_models(self):
         models=[]
-        for ri in mlflow.list_run_infos(mlflow.get_experiment_by_name(self.experiment_name)):
-            run = mlflow.get_run(ri.run_id)
-            for metric in metric_list:
+        # for ri in self.mlflow.list_run_infos(self.mlflow.get_experiment_by_name(self.experiment_name)):
+        for ri in self.mlflow.list_run_infos('0'):
+            run = self.mlflow.get_run(ri.run_id)
+            for metric in self.metric_list:
                 try:
-                    m = run.data.metrics[metric]
                     artifact_uri = run.info.artifact_uri
+                    m = run.data.metrics[metric]
                     models.append((artifact_uri,metric))
                 except KeyError:
                     pass
+        if len(models) == 0:
+            models = [(artifact_uri,1)]
+            
         return models
 
-    def log_params(self, **param_values):
+    def get_model_summary(self,lib):
+        model_name = self.model.__class__.__name__
+
+        if lib in {'keras','tensorflow'}:
+            params = self.model.get_config()
+        elif lib == 'pytorch':
+            params = dict(self.model.named_children())
+        elif lib == 'sklearn':
+            params = self.model.get_params()
+        meta = {'model type':model_name,'parameters':params}
+
+        return meta 
+
+    def get_mlflow_ui(self):
+        return self.mlflow.get_tracking_uri()
+
+    
+    def get_model_meta(self):
+        model_type = self.get_model_library()
+        model_support = {'keras','torch','tensorflow','sklearn'}
+        if model_type not in model_support:
+            raise NotImplementedError(f'Library {model_type} not implemented')
+        else:
+            model_meta = self.get_model_summary(model_type)
+        return model_meta
+
+    def commit(self,by_metric='accuracy'):
+        model_meta=self.get_model_meta()
+        models=[]
+        for ri in self.mlflow.list_run_infos('0'):
+            run = self.mlflow.get_run(ri.run_id)
+            try:
+                artifact_uri = run.info.artifact_uri
+                metric = run.data.metrics[by_metric]
+                models.append((artifact_uri,metric))
+            except KeyError:
+                if len(models) ==0:
+                    models.append((artifact_uri,1))
+                pass
+        try:
+            max_acc_URI=max(models,key=lambda x: x[1])
+        except ValueError:
+            max_acc_URI = models[0]
+        URI = unquote(urlparse(max_acc_URI[0]).path)
+        model_object = pickle.load(open(URI+'/model/model.pkl','rb'))
+        payload ={'URI':URI,'model':model_meta,'mlflow_url':self.mlflow_url}
+        json.dump(payload,open('model_metadata.json','w'))
+
+    # def log_params(self, **param_values):
+    #     for param in self.param_list:
+    #         mlflow.log_param(param, param_values[param])
+
+    def log_params(self, *param_values):
+        values = iter(param_values)
         for param in self.param_list:
-            mlflow.log_param(param, param_values[param]))
+            self.mlflow.log_param(param, next(values))
 
     def start_run(self):
-        mlflow.start_run()
+        return self.mlflow.start_run()
 
     def get_model_signature(self, features, predictions):
         self.model_signature = signature.infer_signature(features, predictions)
@@ -71,7 +146,8 @@ class dataplanet:
     def log(self, labels, predictions):
         self.predictions = predictions
         self.labels = labels
-        log_metrics()
+        self.log_metrics()
+
 
     def set_param_count(self):
         self.param_count = len(self.param_list)
@@ -79,16 +155,22 @@ class dataplanet:
     def get_param_count(self):
         return self.param_count
 
-    # def set_model_library(self):
-    #     self.model_library = str(type(self.model)).split('.')[0].split('\'')
-    #
-    # def get_model_library(self):
-    #     return self.model_library
+    def set_model_library(self):
+        # self.model_library = str(type(self.model)).split('.')[0].split('\'')
+        self.model_library = self.model.__class__.__bases__[0].__module__.split('.')[0]
+
+    def get_model_library(self):
+        return self.model_library
 
     def log_metrics(self):
-        if self.library == 'sklearn':
-            log_sklearn_metrics()
+        if self.model_library == 'sklearn':
+            self.log_sklearn_metrics()
 
+    def log_model(self,model):
+        model_library = self.get_model_library()
+        if model_library == 'sklearn':
+            self.mlflow.sklearn.log_model(model,'model')
+            
     def log_sklearn_metrics(self):
         sklearn_metrics = {'accuracy':'accuracy_score',
             'adjusted mis':'adjusted_mutual_info_score',
@@ -169,6 +251,6 @@ class dataplanet:
         for metric in self.metric_list:
             if metric in sklearn_metrics:
                 metric_val = getattr(sklearn.metrics, sklearn_metrics[metric])(self.labels, self.predictions)
-                mlflow.log_metric(metric, metric_val)
+                self.mlflow.log_metric(metric, metric_val)
             else:
                 raise ValueError('Metric Not Found')
