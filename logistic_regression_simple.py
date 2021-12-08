@@ -3,7 +3,7 @@ from dataplanet.dataplanet import dataplanet
 from sklearn.model_selection import KFold, train_test_split
 from sklearn.linear_model import LogisticRegression
 
-df = pd.read_csv('iris.csv')
+df = pd.read_csv('data/iris.csv')
 
 X = df.drop(columns=['class'])
 y = df['class']
@@ -21,7 +21,7 @@ dp = dataplanet(EXP_NAME,param_list,metric_list)
 dp.set_param_list(reg_space)
 for reg in reg_space:
         with dp.mlflow.start_run():
-            dp.log_params('reg_space')
+            dp.log_params(reg)
 
             clf = LogisticRegression(penalty='l2', multi_class='multinomial', solver='lbfgs', C=reg)
             dp.set_model(clf)
