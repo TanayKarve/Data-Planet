@@ -1,0 +1,32 @@
+{
+    "name": "updateMetadataTrigger",
+    "steps": [
+    	{
+            "provider":":internal",
+            "stepType":"log",
+            "parameters": {
+                "message": "Pre-http request"
+            }
+        },
+        {
+            "provider": ":internal",
+            "stepType": "http/sr",
+            "parameters": {
+                "url": "http://10.0.2.15:2000/update?doi=${dataset.identifier}",
+                "method": "GET",
+                "contentType": "text/plain",
+                "body": "",
+                "expectedResponse":"OK.*",
+                "rollbackUrl":"http://localhost:5050/dump/${invocationId}",
+                "rollbackMethod":"DELETE"
+            }
+        },
+        {
+            "provider":":internal",
+            "stepType":"log",
+            "parameters": {
+                "message": "Post-http request"
+            }
+        }
+    ]
+}
