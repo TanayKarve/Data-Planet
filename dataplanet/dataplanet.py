@@ -7,6 +7,7 @@ import sklearn
 import sklearn.metrics
 from urllib.parse import unquote, urlparse
 import os
+import shutil
 import json
 import pickle
 import subprocess
@@ -122,6 +123,11 @@ class dataplanet:
         model_object = pickle.load(open(URI+'/model/model.pkl','rb'))
         payload ={'URI':URI,'model':model_meta,'mlflow_url':self.mlflow_url}
         json.dump(payload,open('model_metadata.json','w'))
+        self.archive_runs()
+    
+    def archive_runs(self):
+        shutil.make_archive('mlruns', 'zip', 'mlruns')
+
 
     def log_params(self, *param_values):
         values = iter(param_values)
