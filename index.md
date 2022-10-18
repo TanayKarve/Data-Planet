@@ -3,21 +3,19 @@
 Our version of dataverse has been hosted at https://dataverse.dsmlp.ucsd.edu/
 
 ## Table of Contents
-1. [Account Creation](#Account-Creation)
-    - [Sign Up](#Sign-Up)
-    - [Edit Account](#Edit-Account)
-2. [Finding Data](#Finding-Data)
-    - [Basic Search](###Basic-Search)
-    - [Advanced Search](###Advanced-Search)
-
-3. [Data Management]()
-    - [Data Management](##Data-Management)
-    - [Creating a Dataverse](###Creating-a-Dataverse)
-    - [Edit Dataverse](###Edit-Dataverse)
-    - [Dataset Linking](###Dataset-Linking)
-    [Publish](###Publish)
-    - [Restrict Files](###Restrict-Files)
-    - [Provide Access to Restricted Files](###Provide-Access-to-Restricted-Files)
+1. [Account Creation](#account-creation)
+    - [Sign Up](#sign-up)
+    - [Edit Account](#edit-account)
+2. [Finding Data](#finding-data)
+    - [Basic Search](#basic-search)
+    - [Advanced Search](#advanced-search)
+3. [Data Management](#data-management)
+    - [Creating a Dataverse](#creating-a-dataverse)
+    - [Edit Dataverse](#edit-dataverse)
+    - [Dataset Linking](#dataset-linking)
+    - [Publish](#publish)
+    - [Restrict Files](#restrict-files)
+    - [Provide Access to Restricted Files](#provide-access-to-restricted-files)
 
 
 ## Account Creation
